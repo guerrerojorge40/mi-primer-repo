@@ -5,7 +5,28 @@ Este repositorio ha sido creado para fines de prueba e integración con ChatGPT 
 ## Estructura prevista
 
 - `README.md`: Este archivo con la descripción general.
-- (En el futuro se agregarán carpetas como `src/`, `tests/`, `docs/`, etc.)
+- `src/ine_news_scraper.py`: Scraper diario para la sección de comunicación social del INE.
+- `requirements.txt`: Dependencias de Python.
+
+## Uso rápido
+
+1. Instala las dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Ejecuta una sola vez:
+
+```bash
+python src/ine_news_scraper.py --once --max-items 5
+```
+
+3. Ejecuta todos los días (por defecto a las 08:00):
+
+```bash
+python src/ine_news_scraper.py --daily-at 08:00 --output noticias.json
+```
 
 ## Objetivos
 
