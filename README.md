@@ -2,18 +2,19 @@
 
 Este repositorio ha sido creado para fines de prueba e integración con ChatGPT y Codex.
 
-## Estructura prevista
+## Generador de podcast de debate (es-MX)
+1. Instala dependencias: `pip install edge-tts` y asegúrate de tener `ffmpeg` en PATH.
+2. Ejecuta en modo archivo: `python podcast.py --input texto.txt --out salida.mp3 --min-minutes 20`.
+3. O modo interactivo: `python podcast.py` y pega el texto; termina con EOF.
 
-- `README.md`: Este archivo con la descripción general.
-- (En el futuro se agregarán carpetas como `src/`, `tests/`, `docs/`, etc.)
-
-## Objetivos
-
-- Verificar la conexión entre GitHub y ChatGPT.
-- Probar tareas automáticas con Codex.
-- Explorar funcionalidades de análisis de código.
+### Ejemplo de ejecución esperada
+```bash
+$ python podcast.py --input texto.txt --out salida.mp3 --min-minutes 20
+Turnos generados: 42
+Palabras aproximadas: 2950 (~20.3 min)
+✅ Podcast generado: /workspace/mi-primer-repo/salida.mp3
+```
 
 ## Autor
-
 Jorge Luis Benito Guerrero  
 [guerrerojorge40](https://github.com/guerrerojorge40)
