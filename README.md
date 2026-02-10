@@ -10,6 +10,8 @@ Este repositorio ha sido creado para fines de prueba e integración con ChatGPT 
 2. Ejecuta el servidor: `python api.py`
 3. La API estará disponible en `http://localhost:5000`
 
+**Nota**: Para habilitar el modo de depuración (solo para desarrollo), configura la variable de entorno: `FLASK_DEBUG=true python api.py`
+
 #### Endpoints disponibles
 
 - **GET /** - Información de la API
