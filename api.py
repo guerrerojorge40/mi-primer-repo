@@ -10,13 +10,20 @@ from typing import Optional
 
 from flask import Flask, jsonify, request, send_file
 
+# Importar edge_tts para síntesis
+try:
+    import edge_tts
+except ImportError as exc:
+    raise SystemExit(
+        "Falta la dependencia 'edge-tts'. Instálala con: pip install edge-tts"
+    ) from exc
+
 # Importar funciones del módulo podcast
 from podcast import (
     build_debate_turns,
     ensure_ffmpeg,
     merge_and_normalize,
     SPEAKERS,
-    synthesize_turns,
 )
 
 app = Flask(__name__)
@@ -86,9 +93,11 @@ def generate_podcast():
         voice_f = data.get("voice_f", SPEAKERS["HOST_F"])
         voice_m = data.get("voice_m", SPEAKERS["HOST_M"])
         
-        # Actualizar voces si fueron especificadas
-        SPEAKERS["HOST_F"] = voice_f
-        SPEAKERS["HOST_M"] = voice_m
+        # Crear copia local de SPEAKERS para evitar race conditions
+        speakers_local = {
+            "HOST_F": voice_f,
+            "HOST_M": voice_m,
+        }
         
         # Verificar ffmpeg
         ensure_ffmpeg()
@@ -98,22 +107,28 @@ def generate_podcast():
         total_words = sum(len(t[1].split()) for t in turns)
         est_minutes = total_words / 145
         
-        # Crear archivo temporal para el resultado
-        with tempfile.TemporaryDirectory(prefix="podcast_api_") as tmp:
-            tmp_path = Path(tmp)
-            output_file = tmp_path / "podcast.mp3"
-            
-            # Sintetizar y unir audio
-            parts = asyncio.run(synthesize_turns(turns, tmp_path))
-            merge_and_normalize(parts, output_file, tmp_path)
+        # Crear directorio temporal que persista más allá de la función
+        temp_dir = tempfile.mkdtemp(prefix="podcast_api_")
+        output_file = Path(temp_dir) / "podcast.mp3"
+        
+        try:
+            # Sintetizar y unir audio usando SPEAKERS locales
+            parts = asyncio.run(synthesize_turns_with_voices(turns, Path(temp_dir), speakers_local))
+            merge_and_normalize(parts, output_file, Path(temp_dir))
             
             # Retornar el archivo MP3
+            # Flask se encargará de limpiar el archivo temporal después de enviarlo
             return send_file(
                 output_file,
                 mimetype="audio/mpeg",
                 as_attachment=True,
                 download_name="podcast.mp3"
             )
+        except Exception as e:
+            # Limpiar archivos temporales en caso de error
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            raise
     
     except ValueError as e:
         return jsonify({
@@ -127,6 +142,35 @@ def generate_podcast():
         return jsonify({
             "error": f"Error inesperado: {str(e)}"
         }), 500
+
+
+async def synthesize_turns_with_voices(turns, temp_dir, speakers):
+    """Sintetizar turnos con voces específicas."""
+    files = []
+    for i, (speaker, text) in enumerate(turns, start=1):
+        out = temp_dir / f"seg_{i:04d}.mp3"
+        
+        # Escapar texto para SSML
+        esc = (
+            text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+        style = "friendly" if speaker == "HOST_F" else "chat"
+        ssml = (
+            "<speak version='1.0' xml:lang='es-MX'>"
+            f"<voice name='{speakers[speaker]}'>"
+            f"<mstts:express-as style='{style}' xmlns:mstts='https://www.w3.org/2001/mstts'>{esc}</mstts:express-as>"
+            "<break time='700ms'/>"
+            "</voice></speak>"
+        )
+        
+        communicate = edge_tts.Communicate(ssml, voice=speakers[speaker])
+        await communicate.save(str(out))
+        files.append(out)
+        print(f"[{i}/{len(turns)}] sintetizado {speaker}")
+    return files
 
 
 if __name__ == "__main__":
