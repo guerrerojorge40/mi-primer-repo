@@ -62,7 +62,9 @@ def consultar_tramite(
     Returns:
         Diccionario con la información del trámite
     """
-    url_consulta = "http://consultasimcr.ran.gob.mx/consulta_tramite.aspx"
+    # Nota: El sitio del RAN puede usar HTTP o HTTPS dependiendo de su configuración
+    # Intentamos con HTTPS primero por seguridad
+    url_consulta = "https://consultasimcr.ran.gob.mx/consulta_tramite.aspx"
     
     # Preparar parámetros de búsqueda
     params = {"folio": folio}
@@ -81,18 +83,18 @@ def consultar_tramite(
             "Accept-Language": "es-MX,es;q=0.9",
         }
         
-        # Realizar la solicitud
+        # Realizar la solicitud con los parámetros
         session = requests.Session()
-        response = session.get(url_consulta, headers=headers, timeout=30)
+        response = session.get(url_consulta, headers=headers, params=params, timeout=30)
         response.raise_for_status()
         
-        # Aquí se procesaría la respuesta HTML
-        # Por ahora retornamos información básica
+        # TODO: Implementar parsing del HTML de respuesta para extraer
+        # el estatus detallado del trámite. Por ahora retornamos información básica.
         return {
             "estatus": "consultado",
             "folio": folio,
             "url": url_consulta,
-            "mensaje": "Para consultar el estatus completo, visita: http://consultasimcr.ran.gob.mx/consulta_tramite.aspx",
+            "mensaje": "Para consultar el estatus completo, visita: https://consultasimcr.ran.gob.mx/consulta_tramite.aspx",
             "parametros": params,
         }
         

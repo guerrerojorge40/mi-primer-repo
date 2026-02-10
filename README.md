@@ -30,12 +30,12 @@ CONSULTA DE TRÁMITE RAN - REGISTRO AGRARIO NACIONAL
 ============================================================
 
 📋 Folio consultado: 12345
-🌐 URL de consulta: http://consultasimcr.ran.gob.mx/consulta_tramite.aspx
+🌐 URL de consulta: https://consultasimcr.ran.gob.mx/consulta_tramite.aspx
 
 📝 Parámetros de búsqueda:
    • Folio: 12345
 
-💡 Para consultar el estatus completo, visita: http://consultasimcr.ran.gob.mx/consulta_tramite.aspx
+💡 Para consultar el estatus completo, visita: https://consultasimcr.ran.gob.mx/consulta_tramite.aspx
 
 ------------------------------------------------------------
 INFORMACIÓN ADICIONAL:
