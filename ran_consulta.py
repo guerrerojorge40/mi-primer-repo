@@ -14,6 +14,9 @@ except ImportError as exc:
         "Falta la dependencia 'requests'. Instálala con: pip install requests"
     ) from exc
 
+# URL del servicio de consulta del RAN
+RAN_CONSULTA_URL = "https://consultasimcr.ran.gob.mx/consulta_tramite.aspx"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -60,11 +63,13 @@ def consultar_tramite(
         tipo: Tipo de trámite (ejido, comunidad, colonia)
     
     Returns:
-        Diccionario con la información del trámite
+        Diccionario con la información del trámite.
+        En caso de éxito: {'estatus': str, 'folio': str, 'url': str, 'mensaje': str, 'parametros': dict}
+        En caso de error: {'error': str, 'mensaje': str}
     """
     # Nota: El sitio del RAN puede usar HTTP o HTTPS dependiendo de su configuración
     # Intentamos con HTTPS primero por seguridad
-    url_consulta = "https://consultasimcr.ran.gob.mx/consulta_tramite.aspx"
+    url_consulta = RAN_CONSULTA_URL
     
     # Preparar parámetros de búsqueda
     params = {"folio": folio}
@@ -84,8 +89,7 @@ def consultar_tramite(
         }
         
         # Realizar la solicitud con los parámetros
-        session = requests.Session()
-        response = session.get(url_consulta, headers=headers, params=params, timeout=30)
+        response = requests.get(url_consulta, headers=headers, params=params, timeout=30)
         response.raise_for_status()
         
         # TODO: Implementar parsing del HTML de respuesta para extraer
@@ -93,8 +97,8 @@ def consultar_tramite(
         return {
             "estatus": "consultado",
             "folio": folio,
-            "url": url_consulta,
-            "mensaje": "Para consultar el estatus completo, visita: https://consultasimcr.ran.gob.mx/consulta_tramite.aspx",
+            "url": RAN_CONSULTA_URL,
+            "mensaje": f"Para consultar el estatus completo, visita: {RAN_CONSULTA_URL}",
             "parametros": params,
         }
         
