@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, after_this_request
 
 # Importar edge_tts para síntesis
 try:
@@ -116,8 +116,17 @@ def generate_podcast():
             parts = asyncio.run(synthesize_turns_with_voices(turns, Path(temp_dir), speakers_local))
             merge_and_normalize(parts, output_file, Path(temp_dir))
             
+            # Registrar limpieza del directorio temporal después de enviar el archivo
+            @after_this_request
+            def cleanup(response):
+                try:
+                    import shutil
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                except Exception:
+                    pass
+                return response
+            
             # Retornar el archivo MP3
-            # Flask se encargará de limpiar el archivo temporal después de enviarlo
             return send_file(
                 output_file,
                 mimetype="audio/mpeg",
